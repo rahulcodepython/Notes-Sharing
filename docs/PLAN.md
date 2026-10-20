@@ -81,15 +81,15 @@ The route handler parses `result` with zod and maps the flags to 403, 404 or 200
 ```
 /api/auth/[...all]
 /api/dashboard                              GET   all stats in one CTE
+/api/me                                     GET   profile + counts + uploads per community | DELETE {email} (refused while owning a community)
 /api/users/search?q=&community=             GET   debounced, owner only, excludes members
 /api/communities                            GET   mine (with member + note counts) | POST create
 /api/communities/explore?q=                 GET   public ones I'm not in
-/api/communities/[slug]                     GET | PATCH (owner)
+/api/communities/[slug]                     GET | PATCH (owner) | DELETE (owner)
 /api/communities/[slug]/join                POST  open → member, request → join_request
 /api/communities/[slug]/leave               POST
 /api/communities/[slug]/transfer            POST  owner → another member
-/api/communities/[slug]/settings            GET   owner: details + members + requests + invite in one query
-/api/communities/[slug]/members             POST  owner adds by email
+/api/communities/[slug]/members             GET   owner: members + requests (with note counts) + invite | POST owner adds by email
 /api/communities/[slug]/members/[userId]    DELETE (owner)
 /api/communities/[slug]/requests/[userId]   POST {action: approve|reject}
 /api/communities/[slug]/invite              POST new link (replaces old) | DELETE revoke
@@ -103,12 +103,16 @@ The route handler parses `result` with zod and maps the flags to 403, 404 or 200
 
 ## Pages
 
+- `/` landing page (public, indexable), `/privacy-policy`, `/terms-and-conditions`, `/data-security`
+- `/settings`: account settings (read-only Google profile, counts, uploads per community, delete account by typing email)
 - `/login`
 - `/invite/[token]`
 - `/dashboard`: charts and stats
 - `/explore`: public communities I'm not in
 - `/c/[slug]`: notes list, upload, download
-- `/c/[slug]/settings`: owner only. Details, access mode, members, join requests, invite link, transfer ownership.
+- `/communities`: my communities (data table)
+- `/c/[slug]/members`: owner only. Data table of members and requests with note counts, All/Members/Requests filter, search, approve/reject, remove, transfer ownership, Add member dialog, Invite dialog (QR code + link).
+- `/c/[slug]/settings`: owner only. Details, access mode, danger zone (delete community by typing its name).
 
 Every page inside the app shell has a breadcrumb.
 
@@ -133,6 +137,7 @@ Every page inside the app shell has a breadcrumb.
     │   ├── (app)/                          protected, sidebar-07 shell
     │   │   ├── layout.tsx                  session guard + SidebarProvider + breadcrumb
     │   │   ├── dashboard/page.tsx
+│   │   ├── communities/page.tsx
     │   │   ├── explore/page.tsx
     │   │   └── c/[slug]/
     │   │       ├── page.tsx                notes list + upload
@@ -201,10 +206,16 @@ Each phase stops for review before the next one starts.
 - Invite link: one per community, usable by anyone, expires after 7 days. Regenerating replaces it; the owner can revoke it.
 - Removing a member keeps their notes in the community.
 - The owner can rename the community and change its description and access. The slug never changes. Switching to `open` drops pending join requests.
-- Settings is one page of stacked cards: details, members, join requests, invite link. Ownership transfer is a member action.
+- Every list (my communities, explore, notes, members) renders through one generic `DataTable` (TanStack Table v9) with sorting and pagination; filters live in a toolbar above it.
+- Members management has its own owner-only page; settings keeps details and the danger zone. Ownership transfer is a row action in the members table.
+- Deleting a community cascades to members, requests, invite, categories, notes and downloads. Drive files stay with the uploaders.
+- UI uses the shadcn preset `b2CjxkL1E` (base-mira, emerald, Montserrat, square corners).
 - No upload size limit beyond Drive's own quota.
 - Download is a direct Drive download link (`webContentLink`). Every click is recorded.
 - Deleting a note removes it from the app only; the file stays in the uploader's Drive.
 - Categories are created inline from the upload dialog (combobox with `Create "…"`). No rename or delete.
 - The notes page loads categories and notes in one call; search and category filter run client-side.
 - Dashboard (all of my communities, one call): stat cards for communities, distinct members, notes, downloads; notes uploaded and downloads per day for the last 30 days (UTC); top 8 categories (labelled with their community); top 5 uploaders.
+- Account deletion: refused while the user owns a community. Otherwise cascades sessions, Google account link, memberships, requests, notes and downloads; categories and invite links they created stay with `created_by` set to null. Drive files stay.
+- SEO: root metadata (title template, Open Graph, Twitter card, canonical URLs, generated OG image), JSON-LD (WebApplication + FAQPage) on the landing page, `robots.txt`, `sitemap.xml` and a web manifest. Signed-in pages, login and invites are `noindex`. The site URL comes from `BETTER_AUTH_URL`.
+- Theme toggle (light/dark/system) in the app header and the public site header.

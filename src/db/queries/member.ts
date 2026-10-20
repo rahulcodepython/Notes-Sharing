@@ -1,8 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { communitySettingsSchema } from "@/schemas/community";
-import { userSummaryListSchema } from "@/schemas/member";
+import { communityMembersSchema, userSummaryListSchema } from "@/schemas/member";
 import { likeEscape, queryJson } from "../query";
 import { ownedCommunity } from "./owned";
 
@@ -10,33 +9,42 @@ const userJson = sql.raw(
   `json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'image', u.image)`,
 );
 
-/** Everything the owner's settings page needs, in one statement. Null when not the owner. */
-export function getCommunitySettings(userId: string, slug: string) {
+/** Members and pending requests with their note counts, plus the invite link. Null when not the owner. */
+export function getCommunityMembers(userId: string, slug: string) {
   return queryJson(
-    communitySettingsSchema.nullable(),
+    communityMembersSchema.nullable(),
     sql`
-      WITH owned AS (${ownedCommunity(userId, slug)})
+      WITH owned AS (${ownedCommunity(userId, slug)}),
+      rows AS (
+        SELECT u.*, CASE WHEN u.id = o.owner_id THEN 'owner' ELSE 'member' END AS status,
+          m.joined_at AS since, o.id AS community_id
+        FROM owned o
+        JOIN community_member m ON m.community_id = o.id
+        JOIN "user" u ON u.id = m.user_id
+        UNION ALL
+        SELECT u.*, 'requested', jr.created_at, o.id
+        FROM owned o
+        JOIN join_request jr ON jr.community_id = o.id
+        JOIN "user" u ON u.id = jr.user_id
+      )
       SELECT (
         SELECT json_build_object(
-          'details', json_build_object('name', o.name, 'description', o.description, 'access', o.access),
-          'members', (
+          'rows', (
             SELECT coalesce(
               json_agg(
-                ${userJson}::jsonb || jsonb_build_object('joinedAt', m.joined_at, 'isOwner', u.id = o.owner_id)
-                ORDER BY u.id = o.owner_id DESC, m.joined_at
+                ${userJson}::jsonb || jsonb_build_object(
+                  'status', u.status,
+                  'since', u.since,
+                  'noteCount', (
+                    SELECT count(*) FROM note n
+                    WHERE n.community_id = u.community_id AND n.uploader_id = u.id
+                  )
+                )
+                ORDER BY u.status = 'owner' DESC, u.status = 'requested' DESC, u.since
               ),
               '[]'
             )
-            FROM community_member m JOIN "user" u ON u.id = m.user_id
-            WHERE m.community_id = o.id
-          ),
-          'requests', (
-            SELECT coalesce(
-              json_agg(${userJson}::jsonb || jsonb_build_object('requestedAt', jr.created_at) ORDER BY jr.created_at),
-              '[]'
-            )
-            FROM join_request jr JOIN "user" u ON u.id = jr.user_id
-            WHERE jr.community_id = o.id
+            FROM rows u
           ),
           'invite', (
             SELECT json_build_object('token', i.token, 'expiresAt', i.expires_at)

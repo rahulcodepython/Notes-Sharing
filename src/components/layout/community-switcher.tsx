@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronsUpDownIcon, CompassIcon, PlusIcon, UsersIcon } from "lucide-react";
+import { ChevronsUpDownIcon, CompassIcon, PlusIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { CreateCommunityDialog } from "@/components/community/create-community-dialog";
@@ -40,11 +41,15 @@ export function CommunitySwitcher() {
               />
             }
           >
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground">
-              {current ? initials(current.name) : <UsersIcon className="size-4" />}
-            </div>
+            {current ? (
+              <div className="flex aspect-square size-8 items-center justify-center bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground">
+                {initials(current.name)}
+              </div>
+            ) : (
+              <Image src="/logo.png" alt="" width={32} height={32} className="size-8" />
+            )}
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{current?.name ?? "Communities"}</span>
+              <span className="truncate font-medium">{current?.name ?? "Notes Sharing"}</span>
               <span className="truncate text-xs">
                 {current ? `${current.memberCount} members` : "Select a community"}
               </span>

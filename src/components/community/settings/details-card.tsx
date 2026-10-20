@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import { CommunityFormFields } from "@/components/community/community-form-fields";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useUpdateCommunity } from "@/hooks/queries/use-community-settings";
+import { useUpdateCommunity } from "@/hooks/queries/use-members";
 import {
   updateCommunitySchema,
-  type CommunitySettings,
+  type CommunityDetail,
   type UpdateCommunityInput,
 } from "@/schemas/community";
 
@@ -18,12 +18,16 @@ export function DetailsCard({
   details,
 }: {
   slug: string;
-  details: CommunitySettings["details"];
+  details: Pick<CommunityDetail, "name" | "description" | "access">;
 }) {
   const update = useUpdateCommunity(slug);
   const form = useForm<UpdateCommunityInput>({
     resolver: zodResolver(updateCommunitySchema),
-    defaultValues: { ...details, description: details.description ?? "" },
+    defaultValues: {
+      name: details.name,
+      description: details.description ?? "",
+      access: details.access,
+    },
   });
 
   function onSubmit(values: UpdateCommunityInput) {

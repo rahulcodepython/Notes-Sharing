@@ -93,6 +93,7 @@ export const community = pgTable("community", {
   slug: text().notNull().unique(),
   description: text(),
   access: communityAccess().notNull().default("open"),
+  // No cascade: an owner must transfer ownership before deleting their account.
   ownerId: text()
     .notNull()
     .references(() => user.id),
@@ -133,9 +134,7 @@ export const invitation = pgTable("invitation", {
     .primaryKey()
     .references(() => community.id, { onDelete: "cascade" }),
   token: text().notNull().unique(),
-  createdBy: text()
-    .notNull()
-    .references(() => user.id),
+  createdBy: text().references(() => user.id, { onDelete: "set null" }),
   expiresAt: timestamp({ withTimezone: true }).notNull(),
   createdAt: createdAt(),
 });
@@ -148,9 +147,8 @@ export const category = pgTable(
       .notNull()
       .references(() => community.id, { onDelete: "cascade" }),
     name: text().notNull(),
-    createdBy: text()
-      .notNull()
-      .references(() => user.id),
+    // Kept when the creator deletes their account; other members' notes still use it.
+    createdBy: text().references(() => user.id, { onDelete: "set null" }),
     createdAt: createdAt(),
   },
   (t) => [unique().on(t.communityId, t.name)],
@@ -168,7 +166,7 @@ export const note = pgTable(
       .references(() => category.id),
     uploaderId: text()
       .notNull()
-      .references(() => user.id),
+      .references(() => user.id, { onDelete: "cascade" }),
     title: text().notNull(),
     driveFileId: text().notNull(),
     driveUrl: text().notNull(),

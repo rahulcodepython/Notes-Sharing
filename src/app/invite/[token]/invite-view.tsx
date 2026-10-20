@@ -1,8 +1,8 @@
 "use client";
 
 import { LinkIcon } from "lucide-react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { ButtonLink } from "@/components/common/button-link";
 import { EmptyState } from "@/components/common/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +22,7 @@ export function InviteView() {
         icon={<LinkIcon />}
         title="This invite link is invalid or has expired"
         description="Ask the community owner for a new link."
-        action={<Button render={<Link href="/dashboard" />}>Go to dashboard</Button>}
+        action={<ButtonLink href="/dashboard">Go to dashboard</ButtonLink>}
       />
     );
   }
@@ -39,9 +39,9 @@ export function InviteView() {
       </CardContent>
       <CardFooter>
         {invite.isMember ? (
-          <Button className="w-full" render={<Link href={`/c/${invite.slug}`} />}>
+          <ButtonLink className="w-full" href={`/c/${invite.slug}`}>
             You&apos;re already a member. Open community
-          </Button>
+          </ButtonLink>
         ) : (
           <Button
             className="w-full"

@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AppSidebar, AppSidebarFallback } from "@/components/layout/app-sidebar";
 import { PageBreadcrumb } from "@/components/layout/page-breadcrumb";
+import { ThemeToggle } from "@/components/common/theme-toggle";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
+// Signed-in pages are private; keep them out of search results.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 // Sidebar and breadcrumb read the URL, so they stream in on dynamic routes like /c/[slug].
 export default function AppLayout({ children }: LayoutProps<"/">) {
@@ -18,6 +23,9 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           <Suspense>
             <PageBreadcrumb />
           </Suspense>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
       </SidebarInset>

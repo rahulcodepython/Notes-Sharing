@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InviteView } from "./invite-view";
+
+export const metadata: Metadata = {
+  title: "Community invite",
+  robots: { index: false, follow: false },
+};
 
 export default function InvitePage() {
   return (

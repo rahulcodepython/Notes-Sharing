@@ -1,11 +1,13 @@
 "use client";
 
-import { LogOutIcon, SearchXIcon } from "lucide-react";
+import { LogOutIcon, SearchXIcon, SettingsIcon, UsersIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ButtonLink } from "@/components/common/button-link";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { EmptyState } from "@/components/common/empty-state";
-import { AccessBadge, CommunityCounts } from "@/components/community/community-card";
+import { PageHeader } from "@/components/common/page-header";
+import { AccessBadge, CommunityCounts } from "@/components/community/community-badges";
 import { JoinButton } from "@/components/community/join-button";
 import { NotesSection } from "@/components/note/notes-section";
 import { Button } from "@/components/ui/button";
@@ -17,7 +19,7 @@ export function CommunityView() {
   const { slug } = useParams<{ slug: string }>();
   const { data: community, isPending, isError } = useCommunity(slug);
 
-  if (isPending) return <Skeleton className="h-32 rounded-xl" />;
+  if (isPending) return <Skeleton className="h-32" />;
   if (isError) {
     return (
       <EmptyState
@@ -32,7 +34,20 @@ export function CommunityView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <CommunityHeader community={community} />
+      <PageHeader
+        title={community.name}
+        badge={<AccessBadge access={community.access} />}
+        description={
+          <div className="flex flex-col gap-2">
+            {community.description && <p>{community.description}</p>}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <CommunityCounts members={community.memberCount} notes={community.noteCount} />
+              <span>Owner: {community.owner.name}</span>
+            </div>
+          </div>
+        }
+        actions={<HeaderActions community={community} />}
+      />
       {isMember ? (
         <NotesSection slug={community.slug} />
       ) : (
@@ -58,23 +73,21 @@ export function CommunityView() {
   );
 }
 
-function CommunityHeader({ community }: { community: CommunityDetail }) {
-  return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold">{community.name}</h1>
-          <AccessBadge access={community.access} />
-        </div>
-        {community.description && (
-          <p className="max-w-2xl text-muted-foreground">{community.description}</p>
-        )}
-        <CommunityCounts members={community.memberCount} notes={community.noteCount} />
-        <p className="text-xs text-muted-foreground">Owner: {community.owner.name}</p>
-      </div>
-      {community.membership === "member" && <LeaveButton slug={community.slug} />}
-    </div>
-  );
+function HeaderActions({ community }: { community: CommunityDetail }) {
+  if (community.membership === "owner") {
+    return (
+      <>
+        <ButtonLink href={`/c/${community.slug}/members`} variant="outline">
+          <UsersIcon /> Members
+        </ButtonLink>
+        <ButtonLink href={`/c/${community.slug}/settings`} variant="outline">
+          <SettingsIcon /> Settings
+        </ButtonLink>
+      </>
+    );
+  }
+  if (community.membership === "member") return <LeaveButton slug={community.slug} />;
+  return null;
 }
 
 function LeaveButton({ slug }: { slug: string }) {
@@ -84,13 +97,13 @@ function LeaveButton({ slug }: { slug: string }) {
   async function onConfirm() {
     await leave.mutateAsync(slug);
     toast.success("You left the community");
-    router.push("/dashboard");
+    router.push("/communities");
   }
 
   return (
     <ConfirmDialog
       trigger={
-        <Button variant="outline" size="sm">
+        <Button variant="outline">
           <LogOutIcon /> Leave
         </Button>
       }

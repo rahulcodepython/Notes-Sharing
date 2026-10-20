@@ -1,6 +1,13 @@
 "use client";
 
-import { CompassIcon, FileTextIcon, LayoutDashboardIcon, SettingsIcon } from "lucide-react";
+import {
+  CompassIcon,
+  FileTextIcon,
+  LayoutDashboardIcon,
+  LibraryIcon,
+  SettingsIcon,
+  UsersIcon,
+} from "lucide-react";
 import type { ComponentProps } from "react";
 import { CommunitySwitcher } from "@/components/layout/community-switcher";
 import { NavLinks, type NavLink } from "@/components/layout/nav-links";
@@ -17,6 +24,7 @@ import { useCurrentCommunity } from "@/hooks/queries/use-communities";
 
 const mainLinks: NavLink[] = [
   { title: "Dashboard", href: "/dashboard", icon: <LayoutDashboardIcon /> },
+  { title: "My communities", href: "/communities", icon: <LibraryIcon /> },
   { title: "Explore", href: "/explore", icon: <CompassIcon /> },
 ];
 
@@ -27,7 +35,10 @@ export function AppSidebar(props: ComponentProps<typeof Sidebar>) {
     ? [
         { title: "Notes", href: `/c/${community.slug}`, icon: <FileTextIcon /> },
         ...(community.isOwner
-          ? [{ title: "Settings", href: `/c/${community.slug}/settings`, icon: <SettingsIcon /> }]
+          ? [
+              { title: "Members", href: `/c/${community.slug}/members`, icon: <UsersIcon /> },
+              { title: "Settings", href: `/c/${community.slug}/settings`, icon: <SettingsIcon /> },
+            ]
           : []),
       ]
     : [];

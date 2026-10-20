@@ -1,13 +1,13 @@
 "use client";
 
 import { DownloadIcon, FileTextIcon, UsersIcon, UsersRoundIcon } from "lucide-react";
-import Link from "next/link";
+import { ButtonLink } from "@/components/common/button-link";
 import { EmptyState } from "@/components/common/empty-state";
+import { PageHeader } from "@/components/common/page-header";
 import { StatCard } from "@/components/common/stat-card";
 import { CategoryChart } from "@/components/dashboard/category-chart";
 import { DailyBarChart } from "@/components/dashboard/daily-bar-chart";
 import { TopUploaders } from "@/components/dashboard/top-uploaders";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboard } from "@/hooks/queries/use-dashboard";
 
@@ -18,7 +18,7 @@ export function DashboardView() {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton key={i} className="h-28 rounded-xl" />
+          <Skeleton key={i} className="h-28" />
         ))}
       </div>
     );
@@ -30,7 +30,7 @@ export function DashboardView() {
         icon={<UsersRoundIcon />}
         title="You haven't joined any community yet"
         description="Join a community to see and share notes, or create your own."
-        action={<Button render={<Link href="/explore" />}>Explore communities</Button>}
+        action={<ButtonLink href="/explore">Explore communities</ButtonLink>}
       />
     );
   }
@@ -38,8 +38,8 @@ export function DashboardView() {
   const { stats } = data;
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Dashboard" description="Activity across all your communities." />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Communities" value={stats.communities} icon={<UsersRoundIcon />} />
         <StatCard label="Members" value={stats.members} icon={<UsersIcon />} />

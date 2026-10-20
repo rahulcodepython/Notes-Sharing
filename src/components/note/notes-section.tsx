@@ -1,11 +1,12 @@
 "use client";
 
-import { FileTextIcon, SearchIcon } from "lucide-react";
-import { useState } from "react";
+import { FileTextIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { DataTable } from "@/components/common/data-table";
 import { EmptyState } from "@/components/common/empty-state";
-import { NoteTable } from "@/components/note/note-table";
+import { SearchInput } from "@/components/common/search-input";
+import { noteColumns } from "@/components/note/note-columns";
 import { UploadNoteDialog } from "@/components/note/upload-note-dialog";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCommunityNotes } from "@/hooks/queries/use-notes";
@@ -18,14 +19,20 @@ export function NotesSection({ slug }: { slug: string }) {
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState(ALL);
 
-  if (isPending || !data) return <Skeleton className="h-48 rounded-xl" />;
-
   const query = search.trim().toLowerCase();
-  const notes = data.notes.filter(
-    (note) =>
-      (categoryId === ALL || note.category.id === categoryId) &&
-      (!query || note.title.toLowerCase().includes(query)),
+  // Stable reference: the table resets its page whenever `data` changes identity.
+  const notes = useMemo(
+    () =>
+      (data?.notes ?? []).filter(
+        (note) =>
+          (categoryId === ALL || note.category.id === categoryId) &&
+          (!query || note.title.toLowerCase().includes(query)),
+      ),
+    [data, categoryId, query],
   );
+
+  if (isPending || !data) return <Skeleton className="h-48" />;
+
   const categoryOptions = [
     { value: ALL, label: "All categories" },
     ...data.categories.map((c) => ({ value: c.id, label: `${c.name} (${c.noteCount})` })),
@@ -34,22 +41,13 @@ export function NotesSection({ slug }: { slug: string }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
-        <InputGroup className="max-w-xs">
-          <InputGroupAddon>
-            <SearchIcon />
-          </InputGroupAddon>
-          <InputGroupInput
-            placeholder="Search notes"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </InputGroup>
+        <SearchInput value={search} onChange={setSearch} placeholder="Search notes" />
         <Select
           items={categoryOptions}
           value={categoryId}
           onValueChange={(value) => setCategoryId(value ?? ALL)}
         >
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-52">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -60,20 +58,22 @@ export function NotesSection({ slug }: { slug: string }) {
             ))}
           </SelectContent>
         </Select>
-        <div className="ml-auto">
+        <div className="sm:ml-auto">
           <UploadNoteDialog slug={slug} categories={data.categories} />
         </div>
       </div>
-
-      {notes.length ? (
-        <NoteTable notes={notes} />
-      ) : (
-        <EmptyState
-          icon={<FileTextIcon />}
-          title={data.notes.length ? "No notes match your filters" : "No notes yet"}
-          description={data.notes.length ? undefined : "Upload the first one for your classmates."}
-        />
-      )}
+      <DataTable
+        columns={noteColumns}
+        data={notes}
+        getRowId={(note) => note.id}
+        empty={
+          <EmptyState
+            icon={<FileTextIcon />}
+            title={data.notes.length ? "No notes match your filters" : "No notes yet"}
+            description={data.notes.length ? undefined : "Upload the first one for your classmates."}
+          />
+        }
+      />
     </div>
   );
 }

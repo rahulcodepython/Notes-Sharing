@@ -5,7 +5,7 @@ import { useState } from "react";
 import { UserCell } from "@/components/common/user-cell";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { useUserSearch } from "@/hooks/queries/use-community-settings";
+import { useUserSearch } from "@/hooks/queries/use-members";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { UserSummary } from "@/schemas/member";
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
+import { ChevronsUpDownIcon, LogOutIcon, UserCogIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserCell } from "@/components/common/user-cell";
 import {
@@ -64,6 +65,10 @@ export function NavUser() {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            <DropdownMenuItem render={<Link href="/settings" />}>
+              <UserCogIcon />
+              Account settings
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={signOut}>
               <LogOutIcon />
               Log out

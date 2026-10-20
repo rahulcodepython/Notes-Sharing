@@ -237,3 +237,17 @@ export function updateCommunity(userId: string, slug: string, input: UpdateCommu
     `,
   );
 }
+
+/**
+ * Owner-only. Cascades to members, requests, invite, categories, notes and downloads.
+ * Drive files stay in the uploaders' Drives. False when not the owner.
+ */
+export function deleteCommunity(userId: string, slug: string) {
+  return queryJson(
+    z.boolean(),
+    sql`
+      WITH del AS (DELETE FROM community WHERE slug = ${slug} AND owner_id = ${userId} RETURNING id)
+      SELECT EXISTS (SELECT 1 FROM del) AS result
+    `,
+  );
+}

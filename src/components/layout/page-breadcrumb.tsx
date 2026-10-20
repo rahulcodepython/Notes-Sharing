@@ -15,7 +15,9 @@ import { useCurrentCommunity } from "@/hooks/queries/use-communities";
 
 const labels: Record<string, string> = {
   dashboard: "Dashboard",
+  communities: "My communities",
   explore: "Explore",
+  members: "Members",
   settings: "Settings",
 };
 
@@ -35,7 +37,8 @@ function useCrumbs(): Crumb[] {
     if (segments[i - 1] === "c") {
       crumbs.push({ label: community?.name ?? segment, href });
     } else {
-      crumbs.push({ label: labels[segment] ?? segment, href });
+      const label = i === 0 && segment === "settings" ? "Account settings" : labels[segment];
+      crumbs.push({ label: label ?? segment, href });
     }
   }
   return crumbs;
