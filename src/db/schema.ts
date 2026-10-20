@@ -127,22 +127,18 @@ export const joinRequest = pgTable(
   (t) => [primaryKey({ columns: [t.communityId, t.userId] })],
 );
 
-export const invitation = pgTable(
-  "invitation",
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    communityId: uuid()
-      .notNull()
-      .references(() => community.id, { onDelete: "cascade" }),
-    token: text().notNull().unique(),
-    createdBy: text()
-      .notNull()
-      .references(() => user.id),
-    expiresAt: timestamp({ withTimezone: true }),
-    createdAt: createdAt(),
-  },
-  (t) => [index().on(t.communityId)],
-);
+// One active invite link per community. Regenerating replaces the token.
+export const invitation = pgTable("invitation", {
+  communityId: uuid()
+    .primaryKey()
+    .references(() => community.id, { onDelete: "cascade" }),
+  token: text().notNull().unique(),
+  createdBy: text()
+    .notNull()
+    .references(() => user.id),
+  expiresAt: timestamp({ withTimezone: true }).notNull(),
+  createdAt: createdAt(),
+});
 
 export const category = pgTable(
   "category",

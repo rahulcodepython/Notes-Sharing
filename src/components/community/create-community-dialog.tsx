@@ -4,8 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { FormInput, FormTextarea } from "@/components/form/form-input";
-import { FormSelect } from "@/components/form/form-select";
+import { CommunityFormFields } from "@/components/community/community-form-fields";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,13 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FieldGroup } from "@/components/ui/field";
 import { useCreateCommunity } from "@/hooks/queries/use-communities";
-import {
-  communityAccessOptions,
-  createCommunitySchema,
-  type CreateCommunityInput,
-} from "@/schemas/community";
+import { createCommunitySchema, type CreateCommunityInput } from "@/schemas/community";
 
 export function CreateCommunityDialog({
   open,
@@ -56,16 +50,7 @@ export function CreateCommunityDialog({
           <DialogDescription>You will be the owner. You can change these later.</DialogDescription>
         </DialogHeader>
         <form id="create-community" onSubmit={form.handleSubmit(onSubmit)}>
-          <FieldGroup>
-            <FormInput control={form.control} name="name" label="Name" autoComplete="off" />
-            <FormTextarea control={form.control} name="description" label="Description" rows={3} />
-            <FormSelect
-              control={form.control}
-              name="access"
-              label="Who can join"
-              options={communityAccessOptions}
-            />
-          </FieldGroup>
+          <CommunityFormFields control={form.control} />
         </form>
         <DialogFooter>
           <Button type="submit" form="create-community" disabled={createCommunity.isPending}>

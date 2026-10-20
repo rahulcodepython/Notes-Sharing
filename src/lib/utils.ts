@@ -8,3 +8,9 @@ export function initials(name: string) {
     .map((part) => part[0]?.toUpperCase())
     .join("")
 }
+
+const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" })
+
+export function formatDate(iso: string) {
+  return dateFormat.format(new Date(iso))
+}

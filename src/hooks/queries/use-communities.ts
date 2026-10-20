@@ -9,9 +9,9 @@ import {
   joinResultSchema,
   myCommunityListSchema,
   myCommunitySchema,
-  okSchema,
   type CreateCommunityInput,
 } from "@/schemas/community";
+import { okSchema } from "@/schemas/common";
 
 export const communityKeys = {
   all: ["communities"] as const,

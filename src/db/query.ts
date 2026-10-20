@@ -11,3 +11,8 @@ export async function queryJson<T>(schema: z.ZodType<T>, query: SQL): Promise<T>
   const { rows } = await db.execute(query);
   return schema.parse(rows[0]?.result);
 }
+
+/** Escapes LIKE wildcards in user input. */
+export function likeEscape(input: string) {
+  return input.replace(/[\\%_]/g, "\\$&");
+}

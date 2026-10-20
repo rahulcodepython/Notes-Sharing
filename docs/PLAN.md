@@ -61,7 +61,7 @@ The route handler parses `result` with zod and maps the flags to 403, 404 or 200
 - **`community`:** `id`, `name`, `slug` (unique), `description`, `access` (`'open' | 'request' | 'private'`), `owner_id`, `created_at`.
 - **`community_member`:** primary key `(community_id, user_id)`, `joined_at`. The owner also has a row here.
 - **`join_request`:** primary key `(community_id, user_id)`, `created_at`. Approving inserts a member row and deletes the request; rejecting deletes the request.
-- **`invitation`:** `id`, `community_id`, `token` (unique), `created_by`, `expires_at`.
+- **`invitation`:** one row per community. `community_id` (primary key), `token` (unique), `created_by`, `expires_at`, `created_at`.
 - **`category`:** `id`, `community_id`, `name`, `created_by`, unique `(community_id, name)`.
 - **`note`:** `id`, `community_id`, `category_id`, `uploader_id`, `title`, `drive_file_id`, `drive_url`, `mime_type`, `size`, `created_at`.
 - **`note_download`:** `id`, `note_id`, `user_id`, `created_at`.
@@ -88,11 +88,11 @@ The route handler parses `result` with zod and maps the flags to 403, 404 or 200
 /api/communities/[slug]/join                POST  open → member, request → join_request
 /api/communities/[slug]/leave               POST
 /api/communities/[slug]/transfer            POST  owner → another member
-/api/communities/[slug]/members             GET | POST (owner adds by email)
+/api/communities/[slug]/settings            GET   owner: details + members + requests + invite in one query
+/api/communities/[slug]/members             POST  owner adds by email
 /api/communities/[slug]/members/[userId]    DELETE (owner)
-/api/communities/[slug]/requests            GET (owner)
 /api/communities/[slug]/requests/[userId]   POST {action: approve|reject}
-/api/communities/[slug]/invites             POST (owner) → link
+/api/communities/[slug]/invite              POST new link (replaces old) | DELETE revoke
 /api/invites/[token]                        GET preview | POST accept
 /api/communities/[slug]/categories          GET | POST
 /api/communities/[slug]/notes               GET (with download count) | POST
@@ -198,9 +198,11 @@ Each phase stops for review before the next one starts.
 - Members can leave. The owner must transfer ownership first.
 - Non-members visiting `/c/[slug]` of a public community see a preview with Join or Request. Private communities return "not found".
 - Slugs are generated from the name (`physics-101`, then `physics-101-2`, …) and never change. API routes use the slug as the community identifier.
+- Invite link: one per community, usable by anyone, expires after 7 days. Regenerating replaces it; the owner can revoke it.
+- Removing a member keeps their notes in the community.
+- The owner can rename the community and change its description and access. The slug never changes. Switching to `open` drops pending join requests.
+- Settings is one page of stacked cards: details, members, join requests, invite link. Ownership transfer is a member action.
 
 ## Open questions
 
-1. **Invite links:** multi-use or single-use? Expire (for example after 7 days) or never? Can the owner revoke them?
-2. **Removed members' notes:** keep or delete? (Assumed keep.)
-3. **Dashboard charts:** notes uploaded over time (30 days), downloads over time, notes per category, top uploaders, and stat cards (communities, members, notes, downloads). Is this list OK?
+1. **Dashboard charts:** notes uploaded over time (30 days), downloads over time, notes per category, top uploaders, and stat cards (communities, members, notes, downloads). Is this list OK?

@@ -1,7 +1,8 @@
 import { leaveCommunity } from "@/db/queries/community";
 import { ApiError } from "@/lib/api/errors";
 import { parseParams, route } from "@/lib/api/handler";
-import { okSchema, slugParamsSchema } from "@/schemas/community";
+import { okSchema } from "@/schemas/common";
+import { slugParamsSchema } from "@/schemas/community";
 
 export const POST = route(okSchema, async ({ ctx, user }) => {
   const { slug } = await parseParams(ctx, slugParamsSchema);

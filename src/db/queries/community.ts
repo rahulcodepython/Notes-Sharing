@@ -8,8 +8,10 @@ import {
   myCommunityListSchema,
   myCommunitySchema,
   type CreateCommunityInput,
+  type UpdateCommunityInput,
 } from "@/schemas/community";
-import { queryJson } from "../query";
+import { likeEscape, queryJson } from "../query";
+import { ownedCommunity } from "./owned";
 
 const memberCount = sql.raw(
   `(SELECT count(*) FROM community_member cm WHERE cm.community_id = c.id)`,
@@ -82,7 +84,7 @@ export function createCommunity(userId: string, baseSlug: string, input: CreateC
 
 /** Public communities the user is not a member of. */
 export function exploreCommunities(userId: string, q: string | undefined) {
-  const search = q ? `%${q}%` : null;
+  const search = q ? `%${likeEscape(q)}%` : null;
   return queryJson(
     exploreCommunityListSchema,
     sql`
@@ -208,6 +210,30 @@ export function leaveCommunity(userId: string, slug: string) {
         WHEN EXISTS (SELECT 1 FROM deleted) THEN 'left'
         ELSE 'not_member'
       END AS result
+    `,
+  );
+}
+
+/** Owner-only edit. Switching to open drops pending requests, since anyone can now join. False when not the owner. */
+export function updateCommunity(userId: string, slug: string, input: UpdateCommunityInput) {
+  return queryJson(
+    z.boolean(),
+    sql`
+      WITH owned AS (${ownedCommunity(userId, slug)}),
+      upd AS (
+        UPDATE community c SET
+          name = ${input.name},
+          description = nullif(${input.description ?? ""}, ''),
+          access = ${input.access}
+        FROM owned o
+        WHERE c.id = o.id
+        RETURNING c.id, c.access
+      ),
+      cleared AS (
+        DELETE FROM join_request jr USING upd
+        WHERE jr.community_id = upd.id AND upd.access = 'open'
+      )
+      SELECT EXISTS (SELECT 1 FROM upd) AS result
     `,
   );
 }

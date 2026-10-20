@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { inviteLinkSchema } from "./invite";
+import { joinRequestSchema, memberSchema } from "./member";
 
 export const communityAccessSchema = z.enum(["open", "request", "private"]);
 export type CommunityAccess = z.infer<typeof communityAccessSchema>;
@@ -66,4 +68,18 @@ export const communityDetailSchema = countsSchema.extend({
 export type CommunityDetail = z.infer<typeof communityDetailSchema>;
 
 export const joinResultSchema = z.object({ status: z.enum(["joined", "requested"]) });
-export const okSchema = z.object({ ok: z.literal(true) });
+
+export const updateCommunitySchema = createCommunitySchema;
+export type UpdateCommunityInput = CreateCommunityInput;
+
+export const communitySettingsSchema = z.object({
+  details: z.object({
+    name: z.string(),
+    description: z.string().nullable(),
+    access: communityAccessSchema,
+  }),
+  members: z.array(memberSchema),
+  requests: z.array(joinRequestSchema),
+  invite: inviteLinkSchema.nullable(),
+});
+export type CommunitySettings = z.infer<typeof communitySettingsSchema>;
