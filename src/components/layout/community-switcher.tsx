@@ -1,7 +1,9 @@
 "use client";
 
-import { ChevronsUpDownIcon, CompassIcon, UsersIcon } from "lucide-react";
+import { ChevronsUpDownIcon, CompassIcon, PlusIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { CreateCommunityDialog } from "@/components/community/create-community-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +26,7 @@ export function CommunitySwitcher() {
   const { isMobile } = useSidebar();
   const { data: communities = [] } = useMyCommunities();
   const current = useCurrentCommunity();
+  const [creating, setCreating] = useState(false);
 
   return (
     <SidebarMenu>
@@ -78,6 +81,12 @@ export function CommunitySwitcher() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => setCreating(true)} className="gap-2 p-2">
+                <div className="flex size-6 items-center justify-center rounded-md border">
+                  <PlusIcon className="size-4" />
+                </div>
+                <span className="text-muted-foreground">Create community</span>
+              </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/explore" />} className="gap-2 p-2">
                 <div className="flex size-6 items-center justify-center rounded-md border">
                   <CompassIcon className="size-4" />
@@ -88,6 +97,7 @@ export function CommunitySwitcher() {
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
+      <CreateCommunityDialog open={creating} onOpenChange={setCreating} />
     </SidebarMenu>
   );
 }

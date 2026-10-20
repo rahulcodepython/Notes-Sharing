@@ -70,7 +70,7 @@ The route handler parses `result` with zod and maps the flags to 403, 404 or 200
 
 1. `POST /api/notes/upload-session`: the server gets the user's access token from better-auth, creates the Drive app folder if `drive_folder_id` is null, and starts a resumable session with an `Origin` header. It returns `uploadUrl`.
 2. The browser sends a `PUT` with the file to `uploadUrl`, shows a progress bar, and gets back the `fileId`.
-3. `POST /api/communities/[id]/notes` with `{ fileId, title, categoryId }`: the server sets the Drive permission to "anyone with the link can read", then runs one CTE that checks membership and the category and inserts the note. It returns the note and the client shows a toast.
+3. `POST /api/communities/[slug]/notes` with `{ fileId, title, categoryId }`: the server sets the Drive permission to "anyone with the link can read", then runs one CTE that checks membership and the category and inserts the note. It returns the note and the client shows a toast.
 
 ## Download flow (1 call)
 
@@ -81,21 +81,21 @@ The route handler parses `result` with zod and maps the flags to 403, 404 or 200
 ```
 /api/auth/[...all]
 /api/dashboard                              GET   all stats in one CTE
-/api/users/search?q=&communityId=           GET   debounced, owner only, excludes members
+/api/users/search?q=&community=             GET   debounced, owner only, excludes members
 /api/communities                            GET   mine (with member + note counts) | POST create
 /api/communities/explore?q=                 GET   public ones I'm not in
-/api/communities/[id]                       GET | PATCH (owner)
-/api/communities/[id]/join                  POST  open → member, request → join_request
-/api/communities/[id]/leave                 POST
-/api/communities/[id]/transfer              POST  owner → another member
-/api/communities/[id]/members               GET | POST (owner adds by email)
-/api/communities/[id]/members/[userId]      DELETE (owner)
-/api/communities/[id]/requests              GET (owner)
-/api/communities/[id]/requests/[userId]     POST {action: approve|reject}
-/api/communities/[id]/invites               POST (owner) → link
+/api/communities/[slug]                     GET | PATCH (owner)
+/api/communities/[slug]/join                POST  open → member, request → join_request
+/api/communities/[slug]/leave               POST
+/api/communities/[slug]/transfer            POST  owner → another member
+/api/communities/[slug]/members             GET | POST (owner adds by email)
+/api/communities/[slug]/members/[userId]    DELETE (owner)
+/api/communities/[slug]/requests            GET (owner)
+/api/communities/[slug]/requests/[userId]   POST {action: approve|reject}
+/api/communities/[slug]/invites             POST (owner) → link
 /api/invites/[token]                        GET preview | POST accept
-/api/communities/[id]/categories            GET | POST
-/api/communities/[id]/notes                 GET (with download count) | POST
+/api/communities/[slug]/categories          GET | POST
+/api/communities/[slug]/notes               GET (with download count) | POST
 /api/notes/[id]                             DELETE (uploader or owner)
 /api/notes/[id]/download                    POST
 /api/notes/upload-session                   POST
@@ -188,13 +188,19 @@ Each phase stops for review before the next one starts.
 5. Categories and notes: Drive upload, list with download counts, download, delete.
 6. Dashboard charts.
 
+## Resolved decisions
+
+- The community switcher navigates to `/c/[slug]`. The URL is the only "selected community" state.
+- The dashboard shows stats across all of my communities.
+- "Members" in the community list is the total member count.
+- Every download click is counted.
+- Private communities are hidden from Explore.
+- Members can leave. The owner must transfer ownership first.
+- Non-members visiting `/c/[slug]` of a public community see a preview with Join or Request. Private communities return "not found".
+- Slugs are generated from the name (`physics-101`, then `physics-101-2`, …) and never change. API routes use the slug as the community identifier.
+
 ## Open questions
 
-1. **"Members active":** total member count, or members active in a recent window such as the last 30 days? The second needs a `last_seen_at` column.
-2. **Download counting:** every click, or unique users per note?
-3. **Invite links:** multi-use or single-use? Expire (for example after 7 days) or never? Can the owner revoke them?
-4. **Private communities:** fully hidden from explore? (Assumed yes.)
-5. **Leaving:** can members leave? (Assumed yes. The owner must transfer ownership before leaving.)
-6. **Removed members' notes:** keep or delete? (Assumed keep.)
-7. **Community switcher and dashboard:** does the switcher change the current `/c/[slug]`? Does the dashboard show stats for the selected community or for all of my communities?
-8. **Dashboard charts:** notes uploaded over time (30 days), downloads over time, notes per category, top uploaders, and stat cards (communities, members, notes, downloads). Is this list OK?
+1. **Invite links:** multi-use or single-use? Expire (for example after 7 days) or never? Can the owner revoke them?
+2. **Removed members' notes:** keep or delete? (Assumed keep.)
+3. **Dashboard charts:** notes uploaded over time (30 days), downloads over time, notes per category, top uploaders, and stat cards (communities, members, notes, downloads). Is this list OK?

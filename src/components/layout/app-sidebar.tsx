@@ -12,6 +12,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentCommunity } from "@/hooks/queries/use-communities";
 
 const mainLinks: NavLink[] = [
@@ -44,6 +45,17 @@ export function AppSidebar(props: ComponentProps<typeof Sidebar>) {
         <NavUser />
       </SidebarFooter>
       <SidebarRail />
+    </Sidebar>
+  );
+}
+
+/** Shown while the sidebar waits for URL data on dynamic routes. */
+export function AppSidebarFallback() {
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <Skeleton className="h-12 w-full" />
+      </SidebarHeader>
     </Sidebar>
   );
 }
