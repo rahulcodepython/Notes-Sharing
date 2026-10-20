@@ -10,22 +10,22 @@ import {
 } from "react-hook-form";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 
-export type FormFieldProps<T extends FieldValues> = {
+export type FormFieldProps<T extends FieldValues, N extends FieldPath<T> = FieldPath<T>> = {
   control: Control<T>;
-  name: FieldPath<T>;
+  name: N;
   label: string;
   description?: string;
 };
 
 /** Label + control + description + error, wired to react-hook-form. Base for every form input. */
-export function FormField<T extends FieldValues>({
+export function FormField<T extends FieldValues, N extends FieldPath<T>>({
   control,
   name,
   label,
   description,
   children,
-}: FormFieldProps<T> & {
-  children: (field: ControllerRenderProps<T, FieldPath<T>>, invalid: boolean) => ReactNode;
+}: FormFieldProps<T, N> & {
+  children: (field: ControllerRenderProps<T, N>, invalid: boolean) => ReactNode;
 }) {
   return (
     <Controller

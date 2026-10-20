@@ -1,12 +1,13 @@
 "use client";
 
-import { FileTextIcon, LogOutIcon, SearchXIcon } from "lucide-react";
+import { LogOutIcon, SearchXIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { EmptyState } from "@/components/common/empty-state";
 import { AccessBadge, CommunityCounts } from "@/components/community/community-card";
 import { JoinButton } from "@/components/community/join-button";
+import { NotesSection } from "@/components/note/notes-section";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCommunity, useLeaveCommunity } from "@/hooks/queries/use-communities";
@@ -33,11 +34,7 @@ export function CommunityView() {
     <div className="flex flex-col gap-6">
       <CommunityHeader community={community} />
       {isMember ? (
-        <EmptyState
-          icon={<FileTextIcon />}
-          title="No notes yet"
-          description="Note uploads arrive in Phase 5."
-        />
+        <NotesSection slug={community.slug} />
       ) : (
         <EmptyState
           title="You're not a member yet"

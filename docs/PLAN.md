@@ -68,7 +68,7 @@ The route handler parses `result` with zod and maps the flags to 403, 404 or 200
 
 ## Upload flow (3 calls)
 
-1. `POST /api/notes/upload-session`: the server gets the user's access token from better-auth, creates the Drive app folder if `drive_folder_id` is null, and starts a resumable session with an `Origin` header. It returns `uploadUrl`.
+1. `POST /api/communities/[slug]/notes/upload-session`: the server gets the user's access token from better-auth, creates the Drive app folder if `drive_folder_id` is null, and starts a resumable session with an `Origin` header. It returns `uploadUrl`.
 2. The browser sends a `PUT` with the file to `uploadUrl`, shows a progress bar, and gets back the `fileId`.
 3. `POST /api/communities/[slug]/notes` with `{ fileId, title, categoryId }`: the server sets the Drive permission to "anyone with the link can read", then runs one CTE that checks membership and the category and inserts the note. It returns the note and the client shows a toast.
 
@@ -94,11 +94,11 @@ The route handler parses `result` with zod and maps the flags to 403, 404 or 200
 /api/communities/[slug]/requests/[userId]   POST {action: approve|reject}
 /api/communities/[slug]/invite              POST new link (replaces old) | DELETE revoke
 /api/invites/[token]                        GET preview | POST accept
-/api/communities/[slug]/categories          GET | POST
-/api/communities/[slug]/notes               GET (with download count) | POST
+/api/communities/[slug]/categories          POST  member; returns existing on duplicate name
+/api/communities/[slug]/notes               GET categories + notes (with download counts) | POST save uploaded file
+/api/communities/[slug]/notes/upload-session POST Drive resumable upload URL
 /api/notes/[id]                             DELETE (uploader or owner)
 /api/notes/[id]/download                    POST
-/api/notes/upload-session                   POST
 ```
 
 ## Pages
@@ -202,6 +202,11 @@ Each phase stops for review before the next one starts.
 - Removing a member keeps their notes in the community.
 - The owner can rename the community and change its description and access. The slug never changes. Switching to `open` drops pending join requests.
 - Settings is one page of stacked cards: details, members, join requests, invite link. Ownership transfer is a member action.
+- No upload size limit beyond Drive's own quota.
+- Download is a direct Drive download link (`webContentLink`). Every click is recorded.
+- Deleting a note removes it from the app only; the file stays in the uploader's Drive.
+- Categories are created inline from the upload dialog (combobox with `Create "…"`). No rename or delete.
+- The notes page loads categories and notes in one call; search and category filter run client-side.
 
 ## Open questions
 
