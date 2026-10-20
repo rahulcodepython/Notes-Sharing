@@ -207,7 +207,4 @@ Each phase stops for review before the next one starts.
 - Deleting a note removes it from the app only; the file stays in the uploader's Drive.
 - Categories are created inline from the upload dialog (combobox with `Create "…"`). No rename or delete.
 - The notes page loads categories and notes in one call; search and category filter run client-side.
-
-## Open questions
-
-1. **Dashboard charts:** notes uploaded over time (30 days), downloads over time, notes per category, top uploaders, and stat cards (communities, members, notes, downloads). Is this list OK?
+- Dashboard (all of my communities, one call): stat cards for communities, distinct members, notes, downloads; notes uploaded and downloads per day for the last 30 days (UTC); top 8 categories (labelled with their community); top 5 uploaders.
