@@ -1,40 +1,29 @@
-import Footer from "@/app/(home)/footer";
-import Header from "@/app/(home)/header";
-import { Toaster } from "@/components/ui/sonner";
-import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const montserrat = Montserrat({
-    subsets: ["latin"],
-    variable: "--font-montserrat",
-    weight: ["300", "400", "500", "600", "700"],
-    display: "swap",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
 });
 
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-    title: "NotesHub | Notes Sharing Platform",
-    description: "A platform for sharing and collaborating on notes",
+  title: "Notes Sharing",
+  description: "Share notes with your study communities",
 };
 
-export default function RootLayout({
-    children,
-}: Readonly<{
-    children: React.ReactNode;
-}>) {
-    return (
-        <html lang="en">
-            <body className={`${montserrat.variable} antialiased scroll-smooth`}>
-                <main className="min-h-screen flex flex-col bg-darkgreen-50">
-                    <Header />
-                    {children}
-                    <Footer />
-                </main>
-                <Toaster />
-                <Analytics mode="production" />
-            </body>
-        </html>
-    );
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
+    </html>
+  );
 }
